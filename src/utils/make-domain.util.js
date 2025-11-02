@@ -23,6 +23,8 @@ program
     fs.ensureDirSync(domainPath);
     name = domainParts.at(-1);
 
+    const importBase = "../".repeat(domainParts.length + 1);
+
     const className = (name) => {
       return name
         .split(/[-_ ]+/)
@@ -35,7 +37,7 @@ program
     };
 
     const controllerTemplate = `import ${className(name)}Service from "./${name}.service.js";
-import BaseController from "../../common/base_classes/base-controller.js";
+import BaseController from "${importBase}common/base_classes/base-controller.js";
 
 class ${className(name)}Controller extends BaseController {
   constructor() {
@@ -53,7 +55,7 @@ class ${className(name)}Controller extends BaseController {
 export default new ${className(name)}Controller();
 `;
 
-    const serviceTemplate = `import BaseService from "../../common/base_classes/base-service.js";
+    const serviceTemplate = `import BaseService from "${importBase}common/base_classes/base-service.js";
 
 class ${className(name)}Service extends BaseService {
   constructor() {
@@ -71,7 +73,7 @@ export default new ${className(name)}Service();
 `;
 
     const routesTemplate = `import ${className(name)}Controller from "./${name}.controller.js";
-import BaseRoutes from "../../common/base_classes/base-routes.js";
+import BaseRoutes from "${importBase}common/base_classes/base-routes.js";
 import { ${schemaName(name)}Schema } from './${name}.schema.js';
 
 class ${className(name)}Routes extends BaseRoutes {

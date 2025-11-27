@@ -1,6 +1,7 @@
 import "dotenv/config";
 import morgan from "morgan";
 import express from "express";
+import cors from "cors";
 import errorMiddleware from "./middlewares/error.middleware.js";
 import routes from "./routes.js";
 import BaseError from "./common/base_classes/base-error.js";
@@ -16,6 +17,7 @@ class ExpressApplication {
   }
 
   setupMiddleware() {
+    this.app.use(cors());
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: false }));
     this.app.use(morgan("tiny"));

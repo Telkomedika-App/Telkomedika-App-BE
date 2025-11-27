@@ -6,7 +6,7 @@ import {
 } from "../../utils/auth.util.js";
 import Roles from "../../common/enums/user-roles.enum.js";
 
-class StudentAuthService extends BaseService {
+class DoctorAuthService extends BaseService {
   constructor() {
     super();
     // this.error = BaseError
@@ -16,7 +16,7 @@ class StudentAuthService extends BaseService {
   async login(info) {
     const { email, password } = info;
 
-    const user = await this.db.student.findUnique({
+    const user = await this.db.doctor.findUnique({
       where: { email },
     });
 
@@ -33,7 +33,7 @@ class StudentAuthService extends BaseService {
     const accessToken = generateToken({ 
       id: user.id, 
       name: user.name,
-      role: Roles.STUDENT
+      role: Roles.DOCTOR 
     });
 
     delete user.password;
@@ -46,15 +46,15 @@ class StudentAuthService extends BaseService {
   async register(info) {
     const { name, email, password, phone } = info;
 
-    const student = await this.db.student.findUnique({
+    const doctor = await this.db.doctor.findUnique({
       where: { email },
     });
 
-    if (student) {
+    if (doctor) {
       throw this.error.unprocessable("Email already used by another user");
     }
 
-    const newUser = await this.db.student.create({
+    const newUser = await this.db.doctor.create({
       data: {
         name,
         email,
@@ -71,4 +71,4 @@ class StudentAuthService extends BaseService {
   }
 }
 
-export default new StudentAuthService();
+export default new DoctorAuthService();

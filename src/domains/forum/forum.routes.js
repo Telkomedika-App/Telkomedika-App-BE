@@ -17,23 +17,23 @@ class ForumRoutes extends BaseRoutes {
   routes() {
     this.router.get("/", [
       this.auth.authenticate,
-      this.auth.role([this.roles.Student]),
+      this.auth.role([this.roles.STUDENT]),
       this.errCatch(this.controller.getAllPosts.bind(this.controller))
     ]);
     this.router.get("/:id", [
       this.auth.authenticate,
-      this.auth.role([this.roles.Student]),
+      this.auth.role([this.roles.STUDENT]),
       this.errCatch(this.controller.getPostById.bind(this.controller))
     ]);
     this.router.post("/", [
       this.auth.authenticate,
-      this.auth.role([this.roles.Student]),
+      this.auth.role([this.roles.STUDENT]),
       this.validate(postForumSchema),
       this.errCatch(this.controller.createPost.bind(this.controller))
     ]);
     this.router.post("/:id/comments", [
       this.auth.authenticate,
-      this.auth.role([this.roles.Student]),
+      this.auth.role([this.roles.STUDENT]),
       this.validate(addCommentSchema),
       this.errCatch(this.controller.addComment.bind(this.controller))
     ]);

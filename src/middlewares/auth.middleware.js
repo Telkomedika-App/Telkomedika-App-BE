@@ -32,14 +32,15 @@ class AuthMiddleware {
         !decoded.id ||
         !decoded.role ||
         !(
-          decoded.role === this.roles.Student
+          decoded.role === this.roles.STUDENT ||
+          decoded.role === this.roles.DOCTOR
         )
       ) {
         logger.warn("Decoded token is invalid or missing required fields");
         return next(BaseError.forbidden("Token Is Invalid Or No Longer Valid"));
       }
 
-      if (decoded.role === this.roles.Student) {
+      if (decoded.role === this.roles.STUDENT) {
         const student = await this.prisma.student.findUnique({
           where: { id: decoded.id },
         });
@@ -50,7 +51,19 @@ class AuthMiddleware {
         }
 
         req.user = student;
-        req.user.role = this.roles.Student;
+        req.user.role = this.roles.STUDENT;
+      } else if (decoded.role === this.roles.DOCTOR) {
+        const doctor = await this.prisma.doctor.findUnique({
+          where: { id: decoded.id },
+        });
+
+        if (!doctor) {
+          logger.warn(`Doctor with ID ${decoded.id} not found in database`);
+          return next(BaseError.notFound("Doctor Not Found"));
+        }
+
+        req.user = doctor;
+        req.user.role = this.roles.DOCTOR;
       } else {
         logger.warn("Token type is invalid");
         return next(BaseError.forbidden("Token Is Invalid Or No Longer Valid"));
@@ -72,8 +85,8 @@ class AuthMiddleware {
 
   role = (roles) => {
     return (req, res, next) => {
-      if (req.user.role === this.roles.Admin) {
-        logger.info(`Welkam Atmind`);
+      if (req.user.role === this.roles.ADMIN) {
+        logger.info(`Welcome Admin`);
         return next();
       }
 

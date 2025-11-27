@@ -13,6 +13,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+model Doctor {
+  id            String         @id @default(uuid())
+  name          String
+  email         String         @unique
+  password      String
+  phone         String
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  appointments  Appointment[]
+
+  @@map("doctors")
+}
+
 model Student {
   id            String         @id @default(uuid())
   name          String
@@ -23,8 +43,24 @@ model Student {
   updated_at    DateTime       @updatedAt
   forumPosts    ForumPost[]
   forumComments ForumComment[]
+  appointments  Appointment[]
 
   @@map("students")
+}
+
+model Appointment {
+  id         String            @id @default(uuid())
+  student_id String
+  doctor_id  String
+  date       DateTime
+  status     AppointmentStatus @default(PENDING)
+  created_at DateTime          @default(now())
+  updated_at DateTime          @updatedAt
+
+  student Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  doctor  Doctor  @relation(fields: [doctor_id], references: [id], onDelete: Cascade)
+
+  @@map("appointments")
 }
 
 model Admin {

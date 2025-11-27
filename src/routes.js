@@ -1,5 +1,7 @@
 import studentAuthRoutes from "./domains/student-auth/student-auth.routes.js";
+import doctorAuthRoutes from "./domains/doctor-auth/doctor-auth.routes.js";
 import forumRoutes from "./domains/forum/forum.routes.js";
+import appointmentRoutes from "./domains/appointment/appointment.routes.js";
 
 const routes = [
   {
@@ -7,8 +9,16 @@ const routes = [
     route: studentAuthRoutes,
   },
   {
+    path: "/doctor-auth",
+    route: doctorAuthRoutes,
+  },
+  {
     path: "/forum",
     route: forumRoutes,
+  },
+  {
+    path: "/appointment",
+    route: appointmentRoutes,
   }
 ];
 

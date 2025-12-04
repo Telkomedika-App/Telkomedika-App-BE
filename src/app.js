@@ -26,25 +26,27 @@ class ExpressApplication {
   setupRoutes(routes) {
     const router = express.Router();
 
+    // FIXED: template literal harus pakai backtick
     routes.forEach((route) => {
       router.use(`/api${route.path}`, route.route);
     });
 
     this.app.use(router);
 
-    this.app.use("*splat", (req, res, next) => {
+    // FIXED: remove "*splat", gunakan default route handler
+    this.app.use((req, res, next) => {
       logger.error(`Route not found: ${req.originalUrl}`);
       next(BaseError.notFound("Route not found"));
     });
   }
 
-  // Error handler middleware harus dipasang setelah semua route soalnya ntar broken
   setupErrorHandler() {
     this.app.use(errorMiddleware.errorHandler);
   }
 
   start() {
     this.app.listen(this.port, () => {
+      // FIXED: template literal
       logger.info(`Server is running on port ${this.port}`);
     });
   }

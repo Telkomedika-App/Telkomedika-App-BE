@@ -1,119 +1,119 @@
-import BaseService from "../../common/base_classes/base-service.js";
+console.log(">>> SERVICE FILE LOADED <<<");
 
-class AppointmentService extends BaseService {
-  constructor() {
-    super();
-    // this.error = BaseError
-    // this.db = Prisma
-  }
+import prisma from "../../common/services/prisma.service.js";
 
-  async getAllDoctors() {
-    const doctors = await this.db.doctor.findMany({
-      orderBy: { created_at: "desc" }
-    });
-    return doctors;
-  }
-  
-  async getAllStudentAppointments(student) {
-    const appointments = await this.db.appointment.findMany({
-      where: { student_id: student },
-      include: { doctor: true },
-      orderBy: { created_at: "desc" }
-    });
-    return appointments;
-  }
+// combine date + time
+function combineDateAndTime(dateInput, timeStr) {
+  const date = dateInput instanceof Date ? new Date(dateInput) : new Date(dateInput);
+  if (Number.isNaN(date.getTime())) return null;
+  if (!timeStr) return date;
 
-  async getAllDoctorAppointments(doctor) {
-    const appointments = await this.db.appointment.findMany({
-      where: { doctor_id: doctor },
-      include: { student: true },
-      orderBy: { created_at: "desc" }
-    });
-    return appointments;
-  }
+  const [hourStr, minuteStr] = timeStr.split(":");
+  const hour = Number(hourStr);
+  const minute = Number(minuteStr);
 
-  async getStudentAppointmentById(id, student) {
-    const appointment = await this.db.appointment.findFirst({
-      where: { id, student_id: student },
-      include: { doctor: true },
-    });
-    return appointment;
-  }
+  if (Number.isNaN(hour) || Number.isNaN(minute)) return null;
 
-  async getDoctorAppointmentById(id, doctor) {
-    const appointment = await this.db.appointment.findFirst({
-      where: { id, doctor_id: doctor },
-      include: { student: true },
-    });
-    return appointment;
-  }
+  date.setHours(hour);
+  date.setMinutes(minute);
+  date.setSeconds(0);
+  date.setMilliseconds(0);
 
-  async createAppointment(info, student) {
-    const { doctor_id, date } = info
+  return date;
+}
 
-    const created = await this.db.appointment.create({
+class AppointmentService {
+  async create(data) {
+    const dateTime = combineDateAndTime(data.date, data.time);
+    if (!dateTime) throw new Error("Invalid date/time");
+
+    return prisma.appointment.create({
       data: {
-        student_id: student,
-        doctor_id,
-        date
-      },
-      include: { doctor: true }
+        student_id: data.student_id,
+        doctor_id: data.doctor_id,
+        fullName: data.fullName,
+        phone: data.phone,
+        date: dateTime,
+        time: data.time,
+        service: data.service,
+        role: data.role || "student",
+        status: data.status || "PENDING"
+      }
     });
-
-    return created;
   }
 
-  async updateAppointmentStatus(id, info, doctor) {
-    const { status } = info;
-
-    const appointment = await this.db.appointment.findUnique({
-      where: { id },
+  findByStudentId(studentId) {
+    return prisma.appointment.findMany({
+      where: { student_id: studentId },
+      orderBy: { date: "desc" },
+      include: { student: true, doctor: true }
     });
-
-    if (!appointment) {
-      throw this.error.notFound("Appointment not found");
-    }
-
-    const updated = await this.db.appointment.update({
-      where: { id },
-      data: { status },
-    });
-
-    return updated;
   }
 
-  async cancelAppointment(id, student) {
-    const appointment = await this.db.appointment.findUnique({
-      where: { id },
+  findByDoctorId(doctorId) {
+    return prisma.appointment.findMany({
+      where: { doctor_id: doctorId },
+      orderBy: { date: "desc" },
+      include: { student: true, doctor: true }
     });
-
-    if (!appointment) {
-      throw this.error.notFound("Appointment not found");
-    }
-
-    const canceled = await this.db.appointment.update({
-      where: { id },
-      data: { status: "CANCELLED" },
-    });
-
-    return canceled;
   }
 
-  async deleteAppointment(id) {
-    const appointment = await this.db.appointment.findUnique({
+  findById(id) {
+    return prisma.appointment.findUnique({
       where: { id },
+      include: { student: true, doctor: true }
     });
+  }
 
-    if (!appointment) {
-      throw this.error.notFound("Appointment not found");
-    }
+  findAll() {
+    return prisma.appointment.findMany({
+      orderBy: { date: "desc" },
+      include: { student: true, doctor: true }
+    });
+  }
 
-    await this.db.appointment.delete({
+  findActiveAppointment(studentId) {
+  return prisma.appointment.findFirst({
+    where: {
+      student_id: studentId,
+      status: {
+        in: ["PENDING", "CONFIRMED"]
+      }
+    },
+    orderBy: { date: "desc" }
+  });
+}
+
+// di AppointmentService.js
+updateStatus(id, status) {
+  return prisma.appointment.update({
+    where: { id },
+    data: { status: status.toUpperCase() },
+  });
+}
+
+
+  cancel(id) {
+    return prisma.appointment.update({
       where: { id },
+      data: { status: "CANCELLED" }
     });
+  }
 
-    return { id };
+  confirm(id) {
+    return prisma.appointment.update({
+      where: { id },
+      data: { status: "CONFIRMED" }
+    });
+  }
+
+  complete(id) {
+    return prisma.appointment.update({
+      where: { id },
+      data: { status: "COMPLETED" }
+    });
   }
 }
 
+// ✅ INI BAGIAN PALING PENTING
 export default new AppointmentService();

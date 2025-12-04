@@ -1,25 +1,29 @@
 import Joi from "joi";
 
-const createAppointmentSchema = Joi.object({
-  doctor_id: Joi.string().uuid().required().messages({
-    "string.empty": "Doctor ID is required.",
-    "string.guid": "Doctor ID must be a valid UUID.",
+export const createAppointmentSchema = Joi.object({
+  fullName: Joi.string().trim().required().messages({
+    "string.empty": "Nama Lengkap dibutuhkan",
   }),
-  date: Joi.date().iso().required().min("now").messages({
-    "date.base": "Date must be a valid date.",
-    "date.iso": "Date must be in ISO format.",
-    "date.min": "Date must be in the future.",
+  phone: Joi.string().trim().required().messages({
+    "string.empty": "No HP dibutuhkan",
   }),
-});
-
-const updateAppointmentSchema = Joi.object({
-  status: Joi.string()
-    .valid("PENDING", "CONFIRMED", "CANCELLED", "COMPLETED")
+  date: Joi.string()
     .required()
+    .pattern(/^\d{4}-\d{2}-\d{2}$/)
     .messages({
-      "string.empty": "Status is required.",
-      "any.only": "Status must be one of: PENDING, CONFIRMED, CANCELLED, COMPLETED.",
+      "string.empty": "Tanggal tidak valid (gunakan format YYYY-MM-DD)",
+      "string.pattern.base": "Tanggal tidak valid (gunakan format YYYY-MM-DD)",
     }),
+  time: Joi.string()
+    .required()
+    .pattern(/^([01]\d|2[0-3]):([0-5]\d)$/)
+    .messages({
+      "string.empty": "Waktu harus format HH:mm",
+      "string.pattern.base": "Waktu harus format HH:mm",
+    }),
+  service: Joi.string().valid("general", "dental").required().messages({
+    "any.only": "Service tidak valid (general|dental)",
+  }),
+  student_id: Joi.string().optional(),
+  doctor_id: Joi.string().optional(),
 });
-
-export { createAppointmentSchema, updateAppointmentSchema };

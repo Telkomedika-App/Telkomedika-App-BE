@@ -1,68 +1,67 @@
-import AppointmentController from "./appointment.controller.js";
-import BaseRoutes from "../../common/base_classes/base-routes.js";
-import { createAppointmentSchema, updateAppointmentSchema } from './appointment.schema.js';
+import express from "express";
+import appointmentController from "./appointment.controller.js";
+import authMiddleware from "../../middlewares/auth.middleware.js";
+import requestValidator from "../../middlewares/request-validator.middleware.js";
+import { createAppointmentSchema } from "./appointment.schema.js";
+import errorMiddleware from "../../middlewares/error.middleware.js";
 
-class AppointmentRoutes extends BaseRoutes {
-  constructor() {
-    super(AppointmentController);
-    //this.router = Router();
-    //this.auth = AuthMiddleware;
-    //this.validate = Validate;
-    //this.errCatch = ErrorMiddleware.errorCatcher;
-    //this.controller = controller;
-    //this.roles = Roles;
-    //this.routes();
-  }
+const router = express.Router();
 
-  routes() {
-    this.router.get("/", [
-      this.auth.authenticate,
-      this.auth.role([this.roles.STUDENT]),
-      this.errCatch(this.controller.getAllDoctors.bind(this.controller))
-    ]);
-    this.router.get("/student", [
-      this.auth.authenticate,
-      this.auth.role([this.roles.STUDENT]),
-      this.errCatch(this.controller.getAllStudentAppointments.bind(this.controller))
-    ]);
-    this.router.get("/doctor", [
-      this.auth.authenticate,
-      this.auth.role([this.roles.DOCTOR]),
-      this.errCatch(this.controller.getAllDoctorAppointments.bind(this.controller))
-    ]);
-    this.router.get("/student/:id", [
-      this.auth.authenticate,
-      this.auth.role([this.roles.STUDENT]),
-      this.errCatch(this.controller.getStudentAppointmentById.bind(this.controller))
-    ]);
-    this.router.get("/doctor/:id", [
-      this.auth.authenticate,
-      this.auth.role([this.roles.DOCTOR]),
-      this.errCatch(this.controller.getDoctorAppointmentById.bind(this.controller))
-    ]);
-    this.router.post("/", [
-      this.auth.authenticate,
-      this.auth.role([this.roles.STUDENT]),
-      this.validate(createAppointmentSchema),
-      this.errCatch(this.controller.createAppointment.bind(this.controller))
-    ]);
-    this.router.put("/:id", [
-      this.auth.authenticate,
-      this.auth.role([this.roles.DOCTOR]),
-      this.validate(updateAppointmentSchema),
-      this.errCatch(this.controller.updateAppointmentStatus.bind(this.controller))
-    ]);
-    this.router.put("/cancel/:id", [
-      this.auth.authenticate,
-      this.auth.role([this.roles.STUDENT]),
-      this.errCatch(this.controller.cancelAppointment.bind(this.controller))
-    ]);
-    this.router.delete("/:id", [
-      this.auth.authenticate,
-      this.auth.role([this.roles.STUDENT, this.roles.DOCTOR]),
-      this.errCatch(this.controller.deleteAppointment.bind(this.controller))
-    ]);
-  }
-}
+// CREATE appointment
+router.post(
+  "/",
+  authMiddleware.authenticate,
+  requestValidator(createAppointmentSchema),
+  errorMiddleware.errorCatcher(appointmentController.create.bind(appointmentController))
+);
 
-export default new AppointmentRoutes().router;
+// LIST appointments (student or doctor)
+router.get(
+  "/",
+  authMiddleware.authenticate,
+  errorMiddleware.errorCatcher(appointmentController.list.bind(appointmentController))
+);
+
+// GET MY appointments (student) - HARUS SEBELUM /:id
+router.get(
+  "/my",
+  authMiddleware.authenticate,
+  errorMiddleware.errorCatcher(appointmentController.getMy.bind(appointmentController))
+);
+
+// GET by ID
+router.get(
+  "/:id",
+  authMiddleware.authenticate,
+  errorMiddleware.errorCatcher(appointmentController.getById.bind(appointmentController))
+);
+
+// CANCEL
+router.post(
+  "/:id/cancel",
+  authMiddleware.authenticate,
+  errorMiddleware.errorCatcher(appointmentController.cancel.bind(appointmentController))
+);
+
+// CONFIRM
+router.post(
+  "/:id/confirm",
+  authMiddleware.authenticate,
+  errorMiddleware.errorCatcher(appointmentController.confirm.bind(appointmentController))
+);
+
+// COMPLETE
+router.post(
+  "/:id/complete",
+  authMiddleware.authenticate,
+  errorMiddleware.errorCatcher(appointmentController.complete.bind(appointmentController))
+);
+
+// UPDATE STATUS (doctor only)
+router.post(
+  "/:id/status",
+  authMiddleware.authenticate,
+  errorMiddleware.errorCatcher(appointmentController.updateStatus.bind(appointmentController))
+);
+
+export default router;

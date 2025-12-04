@@ -11,89 +11,93 @@ class AuthMiddleware {
   }
 
   authenticate = async (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      logger.warn("Token not found in request headers");
-      return next(BaseError.unauthorized("Token not found"));
-    }
-
-    const token = authHeader.split(" ")[1];
-
-    if (!token) {
-      logger.warn("No token provided");
-      return next(BaseError.unauthorized("User Have Not Login"));
-    }
-
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      if (
-        !decoded ||
-        !decoded.id ||
-        !decoded.role ||
-        !(
-          decoded.role === this.roles.STUDENT ||
-          decoded.role === this.roles.DOCTOR
-        )
-      ) {
-        logger.warn("Decoded token is invalid or missing required fields");
-        return next(BaseError.forbidden("Token Is Invalid Or No Longer Valid"));
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        logger.warn("Token not found in request headers");
+        return next(BaseError.unauthorized("Token not found"));
       }
 
-      if (decoded.role === this.roles.STUDENT) {
-        const student = await this.prisma.student.findUnique({
-          where: { id: decoded.id },
-        });
+      const token = authHeader.split(" ")[1];
+      if (!token) {
+        logger.warn("No token provided after Bearer");
+        return next(BaseError.unauthorized("User has not logged in"));
+      }
 
-        if (!student) {
-          logger.warn(`Student with ID ${decoded.id} not found in database`);
-          return next(BaseError.notFound("Student Not Found"));
+      let decoded;
+      try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
+      } catch (err) {
+        logger.error("JWT verification failed:", err.message);
+        if (err.message === "invalid signature") return next(BaseError.forbidden("Invalid Signature"));
+        if (err.message === "jwt expired") return next(BaseError.forbidden("Token Expired"));
+        return next(BaseError.forbidden("Token is invalid"));
+      }
+
+      console.log("Decoded token:", decoded);
+
+      if (!decoded || !decoded.id || !decoded.role) {
+        logger.warn("Decoded token missing required fields");
+        return next(BaseError.forbidden("Token is missing required fields"));
+      }
+
+      // NORMALISASI ROLE KE LOWERCASE
+      const normalizedRole = decoded.role.toLowerCase();
+      
+      let user = null;
+
+      if (normalizedRole === this.roles.STUDENT.toLowerCase()) {
+        user = await this.prisma.student.findUnique({ where: { id: decoded.id } });
+        if (!user) {
+          logger.warn(`Student with ID ${decoded.id} not found`);
+          return next(BaseError.notFound("Student not found"));
         }
-
-        req.user = student;
-        req.user.role = this.roles.STUDENT;
-      } else if (decoded.role === this.roles.DOCTOR) {
-        const doctor = await this.prisma.doctor.findUnique({
-          where: { id: decoded.id },
-        });
-
-        if (!doctor) {
-          logger.warn(`Doctor with ID ${decoded.id} not found in database`);
-          return next(BaseError.notFound("Doctor Not Found"));
+      } else if (normalizedRole === this.roles.DOCTOR.toLowerCase()) {
+        user = await this.prisma.doctor.findUnique({ where: { id: decoded.id } });
+        if (!user) {
+          logger.warn(`Doctor with ID ${decoded.id} not found`);
+          return next(BaseError.notFound("Doctor not found"));
         }
-
-        req.user = doctor;
-        req.user.role = this.roles.DOCTOR;
+      } else if (normalizedRole === this.roles.ADMIN.toLowerCase()) {
+        user = await this.prisma.admin.findUnique({ where: { id: decoded.id } });
+        if (!user) {
+          logger.warn(`Admin with ID ${decoded.id} not found`);
+          return next(BaseError.notFound("Admin not found"));
+        }
       } else {
-        logger.warn("Token type is invalid");
-        return next(BaseError.forbidden("Token Is Invalid Or No Longer Valid"));
+        logger.warn(`Role ${decoded.role} is invalid`);
+        return next(BaseError.forbidden("Token role is invalid"));
       }
+
+      req.user = { 
+        ...user, 
+        role: normalizedRole,
+        originalRole: decoded.role 
+      };
+      
+      console.log("User attached to request:", req.user);
 
       next();
     } catch (err) {
-      if (err.message === "invalid signature") {
-        return next(BaseError.forbidden("Invalid Signature"));
-      } else if (err.message === "invalid token") {
-        return next(BaseError.forbidden("Invalid Token"));
-      } else if (err.message === "jwt expired") {
-        return next(BaseError.forbidden("Token Expired"));
-      } else {
-        return next(BaseError.forbidden("Token Is Invalid Or No Longer Valid"));
-      }
+      logger.error("Unexpected error in authenticate middleware:", err);
+      return next(BaseError.forbidden("Authentication failed"));
     }
   };
 
-  role = (roles) => {
+  role = (allowedRoles) => {
     return (req, res, next) => {
-      if (req.user.role === this.roles.ADMIN) {
-        logger.info(`Welcome Admin`);
-        return next();
-      }
-
-      if (!roles.includes(req.user.role)) {
-        logger.warn(`User role ${req.user.role} does not have access`);
+      if (!req.user || !req.user.role) {
+        logger.warn("No user attached to request or missing role");
         return next(BaseError.forbidden("Access Denied"));
       }
+
+      const normalizedAllowedRoles = allowedRoles.map(role => role.toLowerCase());
+      
+      if (!normalizedAllowedRoles.includes(req.user.role)) {
+        logger.warn(`User role ${req.user.role} does not have access. Allowed: ${allowedRoles.join(', ')}`);
+        return next(BaseError.forbidden("Access Denied"));
+      }
+
       next();
     };
   };

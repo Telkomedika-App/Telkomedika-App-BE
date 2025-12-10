@@ -57,9 +57,29 @@ class AppointmentController extends BaseController {
       }
 
       if (!doctor_id) {
-        const anyDoctor = await prisma.doctor.findFirst();
-        if (!anyDoctor) throw BaseError.notFound("Doctor tidak ditemukan");
-        doctor_id = anyDoctor.id;
+        const doctors = await prisma.doctor.findMany({ select: { id: true } });
+        if (!doctors || doctors.length === 0) throw BaseError.notFound("Doctor tidak ditemukan");
+
+        const activeStatuses = ["PENDING", "CONFIRMED"];
+        const loads = await Promise.all(
+          doctors.map((d) =>
+            prisma.appointment.count({
+              where: { doctor_id: d.id, status: { in: activeStatuses } },
+            })
+          )
+        );
+
+        let minIdx = 0;
+        let minVal = loads[0] ?? 0;
+        for (let i = 1; i < loads.length; i++) {
+          const v = loads[i] ?? 0;
+          if (v < minVal) {
+            minVal = v;
+            minIdx = i;
+          }
+        }
+
+        doctor_id = doctors[minIdx].id;
       }
 
       const timeRe = /^([01]\d|2[0-3]):([0-5]\d)$/;
@@ -105,7 +125,7 @@ class AppointmentController extends BaseController {
       let result;
 
       if (role === "student") result = await this.service.findByStudentId(user.id);
-      else if (role === "doctor") result = await this.service.findByDoctorId(user.id);
+      else if (role === "doctor") result = await this.service.findAll();
       else result = await this.service.findAll();
 
       return BaseResponse.success(res, result, "Appointments fetched");

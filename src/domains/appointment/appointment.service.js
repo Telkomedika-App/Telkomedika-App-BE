@@ -2,7 +2,6 @@ console.log(">>> SERVICE FILE LOADED <<<");
 
 import prisma from "../../common/services/prisma.service.js";
 
-// combine date + time
 function combineDateAndTime(dateInput, timeStr) {
   const date = dateInput instanceof Date ? new Date(dateInput) : new Date(dateInput);
   if (Number.isNaN(date.getTime())) return null;
@@ -84,7 +83,6 @@ class AppointmentService {
   });
 }
 
-// di AppointmentService.js
 updateStatus(id, status) {
   return prisma.appointment.update({
     where: { id },
@@ -115,5 +113,4 @@ updateStatus(id, status) {
   }
 }
 
-// ✅ INI BAGIAN PALING PENTING
 export default new AppointmentService();

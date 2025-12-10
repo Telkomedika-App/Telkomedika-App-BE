@@ -22,7 +22,7 @@ router.get(
   errorMiddleware.errorCatcher(appointmentController.list.bind(appointmentController))
 );
 
-// GET MY appointments (student) - HARUS SEBELUM /:id
+// GET MY appointments (student) 
 router.get(
   "/my",
   authMiddleware.authenticate,

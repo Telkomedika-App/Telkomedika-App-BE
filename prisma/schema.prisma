@@ -97,3 +97,22 @@ model ForumComment {
 
   @@map("forum_comments")
 }
+
+model Artikel {
+  id            String    @id @default(cuid())
+  judul         String
+  konten        String
+  excerpt       String?       
+  gambar_url    String?
+  kategori      String
+  tags          Json          
+  penulis       String
+  penulis_role  String       
+  is_published  Boolean       @default(true)
+  created_by    String
+  updated_by    String?
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+
+  @@map("artikel")
+}

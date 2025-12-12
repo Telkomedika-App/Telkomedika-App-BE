@@ -3,6 +3,7 @@ import doctorAuthRoutes from "./domains/doctor-auth/doctor-auth.routes.js";
 import forumRoutes from "./domains/forum/forum.routes.js";
 import appointmentRoutes from "./domains/appointment/appointment.routes.js";
 import artikelRoutes from "./domains/artikel/artikel.routes.js"; 
+import studentProfileRoutes from "./domains/student-profile/student-profile.routes.js";
 
 
 const routes = [
@@ -10,8 +11,8 @@ const routes = [
   { path: "/doctor-auth", route: doctorAuthRoutes },
   { path: "/forum", route: forumRoutes },
   { path: "/appointments", route: appointmentRoutes },
-  { path: "/artikel", route: artikelRoutes }
-  
+  { path: "/artikel", route: artikelRoutes },
+  { path: "/student-profile", route: studentProfileRoutes }
 ];
 
 export default routes;

@@ -24,8 +24,8 @@ const artikelSchema = Joi.object({
     Joi.string()
   ).optional().default([]),
   is_published: Joi.boolean().default(true),
-  penulis: Joi.string().max(100).optional(), // Optional karena akan di-set dari user
-  penulis_role: Joi.string().valid('doctor', 'admin').optional() // Optional karena akan di-set dari user
+  penulis: Joi.string().max(100).optional(), 
+  penulis_role: Joi.string().valid('doctor', 'admin').optional() 
 });
 
 const artikelUpdateSchema = Joi.object({
@@ -53,12 +53,12 @@ const artikelFilterSchema = Joi.object({
   kategori: Joi.string().optional(),
   penulis: Joi.string().optional(),
   search: Joi.string().optional(),
-  tags: Joi.string().optional(), // Filter by single tag
+  tags: Joi.string().optional(), 
   page: Joi.number().min(1).default(1),
   limit: Joi.number().min(1).max(100).default(10),
   sort_by: Joi.string().valid('created_at', 'judul', 'kategori').default('created_at'),
   sort_order: Joi.string().valid('asc', 'desc').default('desc'),
-  include_unpublished: Joi.boolean().default(false) // Untuk admin/doctor melihat draft
+  include_unpublished: Joi.boolean().default(false) 
 });
 
 export { artikelSchema, artikelUpdateSchema, artikelFilterSchema };

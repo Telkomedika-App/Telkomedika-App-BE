@@ -12,7 +12,6 @@ class ErrorMiddleware {
         message: err.message,
       });
     } else {
-      // Prisma known errors mapping
       const code = err?.code;
       if (code === "P2002") {
         logger.error("Prisma unique constraint error:", err?.meta || err);
@@ -41,7 +40,7 @@ class ErrorMiddleware {
       console.log("[errorCatcher] req.user:", req.user);
       await controller(req, res, next);
     } catch (err) {
-      const name = controller.name?.replace(/^bound\s*/, ""); // buat ilangin kata kata "bound" soalnya di controller pake bind biar context thisnya tetap dapet
+      const name = controller.name?.replace(/^bound\s*/, ""); 
       logger.error(`in [${name}]:`, err);
       next(err);
     }

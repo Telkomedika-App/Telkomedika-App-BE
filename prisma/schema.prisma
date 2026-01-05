@@ -15,14 +15,14 @@ enum AppointmentStatus {
 }
 
 model Doctor {
-  id            String         @id @default(uuid())
-  name          String
-  email         String         @unique
-  password      String
-  phone         String
-  created_at    DateTime       @default(now())
-  updated_at    DateTime       @updatedAt
-  appointments  Appointment[]
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  password     String
+  phone        String
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+  appointments Appointment[]
 
   @@map("doctors")
 }
@@ -99,20 +99,46 @@ model ForumComment {
 }
 
 model Artikel {
-  id            String    @id @default(cuid())
-  judul         String
-  konten        String
-  excerpt       String?       
-  gambar_url    String?
-  kategori      String
-  tags          Json          
-  penulis       String
-  penulis_role  String       
-  is_published  Boolean       @default(true)
-  created_by    String
-  updated_by    String?
-  created_at    DateTime      @default(now())
-  updated_at    DateTime      @updatedAt
+  id           String   @id @default(cuid())
+  judul        String
+  konten       String
+  excerpt      String?
+  gambar_url   String?
+  kategori     String
+  tags         Json
+  penulis      String
+  penulis_role String
+  is_published Boolean  @default(true)
+  created_by   String
+  updated_by   String?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
 
   @@map("artikel")
+}
+
+model ChatRoom {
+  id         String        @id @default(uuid())
+  student_id String // hanya ID biasa, tanpa foreign key
+  messages   ChatMessage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("chat_rooms")
+}
+
+model ChatMessage {
+  id      String   @id @default(uuid())
+  room_id String
+  room    ChatRoom @relation(fields: [room_id], references: [id], onDelete: Cascade)
+
+  sender_id   String
+  sender_role String // student / doctor
+  message     String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("chat_messages")
 }

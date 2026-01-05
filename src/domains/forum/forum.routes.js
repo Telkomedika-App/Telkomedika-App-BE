@@ -39,7 +39,7 @@ class ForumRoutes extends BaseRoutes {
     ]);
     this.router.delete("/:id", [
   this.auth.authenticate,
-  this.auth.role([this.roles.DOCTOR, this.roles.STUDENT]), // admin boleh hapus apa saja
+  this.auth.role([this.roles.DOCTOR, this.roles.STUDENT]),
   this.errCatch(this.controller.deletePost.bind(this.controller))
 ]);
 

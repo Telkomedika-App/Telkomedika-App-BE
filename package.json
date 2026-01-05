@@ -1,7 +1,7 @@
 {
   "name": "telkomedika-be",
   "version": "1.0.0",
-  "description": "project",
+  "description": "Telkomedika Backend API",
   "license": "ISC",
   "author": "",
   "type": "module",
@@ -10,6 +10,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
+    "build": "prisma generate && prisma migrate deploy",
+    "postinstall": "prisma generate",
     "make:domain": "node src/utils/make-domain.util.js make:domain"
   },
   "dependencies": {
@@ -32,5 +34,12 @@
     "prisma": "^5.15.0",
     "simple-swizzle": "^0.2.2",
     "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   }
 }

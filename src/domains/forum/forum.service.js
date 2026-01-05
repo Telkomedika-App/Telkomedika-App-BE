@@ -73,7 +73,6 @@ class ForumService extends BaseService {
 
   if (!post) throw this.error.notFound("Post not found.");
 
-  // hanya admin atau author
   if (user.role.toUpperCase() !== "DOCTOR" && post.author_id !== user.id)
     throw this.error.forbidden("You are not allowed to delete this post.");
 
@@ -92,7 +91,5 @@ async deleteComment(id, user) {
   await this.db.forumComment.delete({ where: { id } });
   return { message: "Comment deleted successfully" };
 }
-
 }
-
 export default new ForumService();

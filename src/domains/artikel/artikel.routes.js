@@ -9,7 +9,6 @@ class ArtikelRoutes extends BaseRoutes {
   }
 
   routes() {
-    // Public routes - get articles
     this.router.get("/", [
       this.validate(artikelFilterSchema),
       this.errCatch(this.controller.getAllArtikel.bind(this.controller))
@@ -19,7 +18,6 @@ class ArtikelRoutes extends BaseRoutes {
       this.errCatch(this.controller.getArtikelById.bind(this.controller))
     ]);
 
-    // Student routes (authenticated)
     this.router.get("/student/articles", [
       this.auth.authenticate,
       this.auth.role([this.roles.STUDENT]),
@@ -27,7 +25,6 @@ class ArtikelRoutes extends BaseRoutes {
       this.errCatch(this.controller.getAllArtikel.bind(this.controller))
     ]);
 
-    // Doctor routes
     this.router.get("/doctor/my-articles", [
       this.auth.authenticate,
       this.auth.role([this.roles.DOCTOR]),
@@ -56,4 +53,4 @@ class ArtikelRoutes extends BaseRoutes {
   }
 }
 
-export default new ArtikelRoutes().router; // Export router
+export default new ArtikelRoutes().router;

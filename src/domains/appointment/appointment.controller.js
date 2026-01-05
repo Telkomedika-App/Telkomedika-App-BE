@@ -10,7 +10,6 @@ class AppointmentController extends BaseController {
     super(AppointmentService);
   }
 
-  // CREATE APPOINTMENT
   async create(req, res, next) {
     try {
       console.log("[AppointmentController.create] req.user:", req.user);
@@ -97,7 +96,6 @@ class AppointmentController extends BaseController {
       if (!student) throw BaseError.notFound("Student tidak ditemukan");
       if (!doctor) throw BaseError.notFound("Doctor tidak ditemukan");
 
-      // Payload untuk create
       const payload = {
         student_id,
         doctor_id,
@@ -117,7 +115,6 @@ class AppointmentController extends BaseController {
     }
   }
 
-  // LIST APPOINTMENTS
   async list(req, res, next) {
     try {
       const user = req.user || {};
@@ -246,27 +243,25 @@ class AppointmentController extends BaseController {
   }
 
   async updateStatus(req, res, next) {
-    try {
-      const { id } = req.params;
-      const { status } = req.body;
-      const user = req.user || {};
-      const role = String(user.role || "").toLowerCase();
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const user = req.user || {};
+    const role = String(user.role || "").toLowerCase();
 
-      if (role !== "doctor") throw BaseError.forbidden("Hanya dokter yang dapat mengubah status");
+    if (role !== "doctor") throw BaseError.forbidden("Hanya dokter yang dapat mengubah status");
 
-      const appt = await this.service.findById(id);
-      if (!appt) throw BaseError.notFound("Appointment tidak ditemukan");
-      if (appt.doctor_id !== user.id) throw BaseError.forbidden("Akses ditolak");
+    const appt = await this.service.findById(id);
+    if (!appt) throw BaseError.notFound("Appointment tidak ditemukan");
 
-      const allowedStatuses = ["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"];
-      if (!allowedStatuses.includes(status.toUpperCase())) throw BaseError.badRequest("Status tidak valid");
+    const allowedStatuses = ["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"];
+    if (!allowedStatuses.includes(status.toUpperCase())) throw BaseError.badRequest("Status tidak valid");
 
-      const updated = await this.service.updateStatus(id, status.toUpperCase());
-      return BaseResponse.success(res, updated, `Appointment status updated to ${status.toUpperCase()}`);
-    } catch (err) {
-      return next(err);
-    }
+    const updated = await this.service.updateStatus(id, status.toUpperCase());
+    return BaseResponse.success(res, updated, `Appointment status updated to ${status.toUpperCase()}`);
+  } catch (err) {
+    return next(err);
   }
 }
-
+}
 export default new AppointmentController();

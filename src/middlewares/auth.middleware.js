@@ -41,7 +41,6 @@ class AuthMiddleware {
         return next(BaseError.forbidden("Token is missing required fields"));
       }
 
-      // NORMALISASI ROLE KE LOWERCASE
       const normalizedRole = decoded.role.toLowerCase();
       
       let user = null;

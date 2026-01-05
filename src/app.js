@@ -26,14 +26,12 @@ class ExpressApplication {
   setupRoutes(routes) {
     const router = express.Router();
 
-    // FIXED: template literal harus pakai backtick
     routes.forEach((route) => {
       router.use(`/api${route.path}`, route.route);
     });
 
     this.app.use(router);
 
-    // FIXED: remove "*splat", gunakan default route handler
     this.app.use((req, res, next) => {
       logger.error(`Route not found: ${req.originalUrl}`);
       next(BaseError.notFound("Route not found"));
@@ -46,10 +44,8 @@ class ExpressApplication {
 
   start() {
     this.app.listen(this.port, () => {
-      // FIXED: template literal
       logger.info(`Server is running on port ${this.port}`);
     });
   }
 }
-
 export default ExpressApplication;

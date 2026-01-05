@@ -101,8 +101,8 @@ model ForumComment {
 model Artikel {
   id           String   @id @default(cuid())
   judul        String
-  konten       String
-  excerpt      String?
+  konten       String   @db.Text
+  excerpt      String?  @db.VarChar(255)
   gambar_url   String?
   kategori     String
   tags         Json

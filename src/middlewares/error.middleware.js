@@ -12,6 +12,20 @@ class ErrorMiddleware {
         message: err.message,
       });
     } else {
+      const code = err?.code;
+      if (code === "P2002") {
+        logger.error("Prisma unique constraint error:", err?.meta || err);
+        return res.status(422).json({ success: false, status: "UNPROCESSABLE_ENTITY", message: "Data sudah digunakan" });
+      }
+      if (code === "P2003") {
+        logger.error("Prisma foreign key constraint error:", err?.meta || err);
+        return res.status(422).json({ success: false, status: "UNPROCESSABLE_ENTITY", message: "Relasi tidak valid (student/doctor tidak ditemukan)" });
+      }
+      if (code === "P2000" || code === "P2001") {
+        logger.error("Prisma general error:", err?.meta || err);
+        return res.status(422).json({ success: false, status: "UNPROCESSABLE_ENTITY", message: err?.message || "Permintaan tidak dapat diproses" });
+      }
+
       logger.error("Unhandled error:", err);
       return res.status(StatusCode.INTERNAL_SERVER_ERROR.code).json({
         success: false,
@@ -23,9 +37,10 @@ class ErrorMiddleware {
 
   errorCatcher = (controller) => async (req, res, next) => {
     try {
-      await controller(req, res);
+      console.log("[errorCatcher] req.user:", req.user);
+      await controller(req, res, next);
     } catch (err) {
-      const name = controller.name?.replace(/^bound\s*/, ""); // buat ilangin kata kata "bound" soalnya di controller pake bind biar context thisnya tetap dapet
+      const name = controller.name?.replace(/^bound\s*/, ""); 
       logger.error(`in [${name}]:`, err);
       next(err);
     }

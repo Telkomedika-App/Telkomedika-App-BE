@@ -68,6 +68,28 @@ class ForumService extends BaseService {
 
     return created;
   }
+  async deletePost(id, user) {
+  const post = await this.db.forumPost.findUnique({ where: { id } });
+
+  if (!post) throw this.error.notFound("Post not found.");
+
+  if (user.role.toUpperCase() !== "DOCTOR" && post.author_id !== user.id)
+    throw this.error.forbidden("You are not allowed to delete this post.");
+
+  await this.db.forumPost.delete({ where: { id } });
+  return { message: "Post deleted successfully" };
 }
 
+async deleteComment(id, user) {
+  const comment = await this.db.forumComment.findUnique({ where: { id } });
+
+  if (!comment) throw this.error.notFound("Comment not found.");
+
+  if (user.role.toUpperCase() !== "DOCTOR" && comment.author_id !== user.id)
+    throw this.error.forbidden("You are not allowed to delete this comment.");
+
+  await this.db.forumComment.delete({ where: { id } });
+  return { message: "Comment deleted successfully" };
+}
+}
 export default new ForumService();

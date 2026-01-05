@@ -9,8 +9,14 @@ import Roles from "../../common/enums/user-roles.enum.js";
 class DoctorAuthService extends BaseService {
   constructor() {
     super();
-    // this.error = BaseError
-    // this.db = Prisma
+  }
+  
+  async list() {
+    const doctors = await this.db.doctor.findMany({
+      select: { id: true, name: true, email: true, phone: true },
+      orderBy: { name: "asc" },
+    });
+    return doctors;
   }
   
   async login(info) {
@@ -59,7 +65,7 @@ class DoctorAuthService extends BaseService {
         name,
         email,
         password: await hashPassword(password),
-        phone
+        phone,
       },
     });
 

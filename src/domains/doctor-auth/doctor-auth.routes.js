@@ -15,6 +15,10 @@ class DoctorAuthRoutes extends BaseRoutes {
   }
 
   routes() {
+    this.router.get("/list", [
+      this.errCatch(this.controller.list.bind(this.controller)),
+    ]);
+
     this.router.post("/login", [
       this.validate(loginSchema),
       this.errCatch(this.controller.login.bind(this.controller)),
